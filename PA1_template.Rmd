@@ -1,25 +1,116 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research - Course project 1"
+output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-## Loading and preprocessing the data
+## R Markdown
 
+1. Code for reading in the dataset and/or processing the data
 
+```{r load}
+Activity <- read.csv(file="activity.csv", header=TRUE, sep=",")
+head(Activity)
+Activity$date<-as.POSIXct(Activity$date, format = "%Y-%m-%d")
 
-## What is mean total number of steps taken per day?
+```
 
+2. Histogram of the total number of steps taken each day
 
+```{r histogram}
+Activity$date<-as.POSIXct(Activity$date, format = "%Y-%m-%d")
+ActivityPerDay<- aggregate(steps ~ date, Activity ,sum)
+head(ActivityPerDay)
+hist(ActivityPerDay$steps)
+```
 
-## What is the average daily activity pattern?
+3. Mean and median number of steps taken each day
 
+``` {r MeanMedia}
+ActivityMean <- mean(ActivityPerDay$steps)
+ActivityMedian <- median(ActivityPerDay$steps)
+ActivityMean
+ActivityMedian
+```
 
+Mean is `r ActivityMean` and median is `r ActivityMedian` .
 
-## Imputing missing values
+4. Time series plot of the average number of steps taken
 
+``` {r SeriesPlotAverage}
+ActivityPerInterval<- aggregate(steps ~ interval, Activity , mean)
+head(ActivityPerInterval)
+plot(ActivityPerInterval$interval, ActivityPerInterval$steps, type = 'l', xlab = "5 min interval", ylab = "Average number of steps")
+```
 
+5. The 5-minute interval that, on average, contains the maximum number of steps
 
-## Are there differences in activity patterns between weekdays and weekends?
+``` {r MaximunNumber}
+ActivityMaximun <- max(ActivityPerInterval$steps)
+ActivityIntervalMaximun <- ActivityPerInterval[ActivityPerInterval$steps == ActivityMaximun,]$interval
+```
+
+The interval with maximun number of steps (on average) is `r ActivityIntervalMaximun` with `r ActivityMaximun` number of steps.
+
+6. Code to describe and show a strategy for imputing missing data
+
+``` {r MissingData}
+sum(is.na(Activity$steps))
+sum(is.na(Activity$interval))
+sum(is.na(Activity$date))
+ActivityNACount <- sum(is.na(Activity$steps))
+```
+
+The total number of missing values in the dataset is `r ActivityNACount`.  Only the field steps contains NA values.
+
+The strategy used to fill in the NA values is take the mean for that 5-minute interval.
+
+``` {r CleanActivity}
+CleanActivity <- Activity
+for (i in 1:dim(Activity)[][1]) {
+    interval <- CleanActivity[i,]$interval
+    mean5min <- ActivityPerInterval[1,]$steps
+    CleanActivity$steps[is.na(CleanActivity$steps)] <- mean5min
+ }
+head(CleanActivity)
+```
+
+7. Histogram of the total number of steps taken each day after missing values are imputed
+
+```{r CleanHistogram}
+CleanActivityPerDay<- aggregate(steps ~ date, CleanActivity ,sum)
+head(CleanActivityPerDay)
+hist(CleanActivityPerDay$steps)
+```
+
+Mean and median number of steps taken each day.
+
+``` {r CleanMeanMedia}
+CleanActivityMean <- mean(CleanActivityPerDay$steps)
+CleanActivityMedian <- median(CleanActivityPerDay$steps)
+CleanActivityMean
+CleanActivityMedian
+```
+
+Mean is `r CleanActivityMean` and median is `r CleanActivityMedian` .
+
+There are a clear impact because the NA value on the mean an the media:  
+   -  Mean: with NA values is `r ActivityMean` and without is `r CleanActivityMean`  
+   -  Median: with NA value is `r ActivityMedian` and without is `r CleanActivityMedian`  
+   
+9. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+``` {r}
+library(dplyr)
+ActiviyWeekday <- Activity
+ActivityWeekday <- mutate(ActiviyWeekday, weekDay = weekdays(date))
+ActivityWeekday <- mutate(ActiviyWeekday, isWeekend = ifelse(ActivityWeekday$weekDay == "Saturday" |    ActivityWeekday$weekDay == "Sunday" , "weekend", "weekday"))
+ActivityWeekdayPerInterval<- aggregate(steps ~ interval + isWeekend, ActivityWeekday , mean)
+head(ActivityWeekdayPerInterval)
+library(lattice)
+xyplot(steps ~ interval | isWeekend, data = ActivityWeekdayPerInterval, type = "l", layout = c(1, 2), xlab = "5 min interval", ylab = "Average number of steps")
+
+```
