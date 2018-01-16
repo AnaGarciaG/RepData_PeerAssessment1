@@ -234,17 +234,8 @@ CleanActivityMean</code></pre>
 <ol start="9" style="list-style-type: decimal">
 <li>Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends</li>
 </ol>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## Warning: package 'dplyr' was built under R version 3.4.2</code></pre>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>ActiviyWeekday &lt;- Activity
+<pre class="r"><code>library(dplyr)
+ActiviyWeekday &lt;- Activity
 ActivityWeekday &lt;- mutate(ActiviyWeekday, weekDay = weekdays(date))
 ActivityWeekday &lt;- mutate(ActiviyWeekday, isWeekend = ifelse(ActivityWeekday$weekDay == &quot;Saturday&quot; |    ActivityWeekday$weekDay == &quot;Sunday&quot; , &quot;weekend&quot;, &quot;weekday&quot;))
 ActivityWeekdayPerInterval&lt;- aggregate(steps ~ interval + isWeekend, ActivityWeekday , mean)
